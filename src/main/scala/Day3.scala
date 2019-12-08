@@ -1,103 +1,68 @@
 object Day3 {
-    //import scala.io.Source
-    //val i3 = Source.fromURL("https://adventofcode.com/2019/day/3/input")
+    import scala.io.Source
+   
+    val i3 = Source.fromResource("day3.txt").getLines
+    val p1 = i3.next
+    val p2 = i3.next
     val s1 = "R75,D30,R83,U83,L12,D49,R71,U7,L72"
-    val p1 = "R8,U5,L5,D3"
-    val p2 = "U7,R6,D4,L4"
+    //val p1 = "R8,U5,L5,D3"
+    //val p2 = "U7,R6,D4,L4"
+    //val p1 = "R75,D30,R83,U83,L12,D49,R71,U7,L72"
+    //val p2 = "U62,R66,U55,R34,D71,R55,D58,R83"
+    //val p1 = "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51"
+    //val p2 = "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"
 
 
     def main(args: Array[String]): Unit = {
-        println(parse(s1))
-        println(getMinMax(parse(s1),'R','L'))
 
         val p1p = parse(p1)
         val p2p = parse(p2)
-        println(getMinMax(p1p))
-        println(getMinMax(p2p))
-        val g = new Grid(getMinMax(p1p))
-        g.run(p1p)
-        g.print()
+        println(p1p)
+//        println("1=" + generatePoints(p1p))
+        println(p2p)
+//        println("2=" + generatePoints(p2p))
+        println("c=" + closestPoints(p1p,p2p))
+        println("s=" + getSignalDelay(p1p,p2p))
+
+        //println(closestPoints(i3.next,i3.next))
     }
 
+    type Cmd =  (Char,Int)
     type Cmds =  List[(Char,Int)]
     def parse(s:String) : Cmds = s.split(",").map( e => (e.charAt(0),Integer.parseInt(e.drop(1)))).toList
-    /*
-    // returns (minX,maxX,minY,maxY) for the list of commands starting from 0,0
-    def getMinMax(c:Cmds)/*: (Int,Int,Int,Int)*/ = c.map( (c,v) => c match {
-        case 'R' => (v,0)
-        case 'L' => (-v,0)
-        case 'U' => (0, v)
-        case 'D' => (0, -v)
-    }).foldLeft(((0,0),(0,0,0,0)))( (a,m) => {
-        val 
-    })
-    */
-    def getMinMax(c:Cmds, plus:Char,minus:Char) : (Int,Int) =  
-    {
-        val r = c.flatMap( 
-            (cmd,v) => if (cmd == plus ) List(v) else if (cmd == minus) List(-v) else List() 
-            // accumulator (min,max,value)
-            ).foldLeft((0,0,0))((a,p) => {
-                val np = a._3 + p
-                (Math.min(a._1,np), Math.max(a._2,np),np)
-            })
-        (r._1,r._2)
+
+    def generatePoints(c:Cmds) : Seq[(Int,Int)] = c.foldLeft(List((0,0))) { (a,c) => a ++ generatePoints(a.last._1, a.last._2, c) }.tail
+
+
+    def generatePoints(x:Int, y:Int, c:Cmd) : Seq[(Int,Int)] = c._1 match {
+        case 'R' => xPoints(x:Int, y:Int, c._2)
+        case 'L' => xPoints(x:Int, y:Int, -c._2)
+        case 'U' => yPoints(x:Int, y:Int, c._2)
+        case 'D' => yPoints(x:Int, y:Int, -c._2)
     }
 
-    // ((minX,maxX),(minY,maxY))
-    type Rectangle = ((Int,Int),(Int,Int))
-    def getMinMax(c:Cmds) : Rectangle = {
-        val xMinMax = getMinMax(c,'R','L')
-        val yMinMax = getMinMax(c,'U','D')
-        (xMinMax,yMinMax)
+    import scala.language.implicitConversions
+    def getRange(nb:Int) = if ( 0 <= nb) (1 to nb) else (-1 to nb by -1)
+    def xPoints(x:Int, y:Int, nb:Int) = getRange(nb).map( v => (x+v,y))
+    def yPoints(x:Int, y:Int, nb:Int) = getRange(nb).map( v => (x,y+v))
+
+    def closestPoints(p1:String, p2: String) : Seq[(Int,Int)] = {
+        val p1p = parse(p1)
+        val p2p = parse(p2)
+        closestPoints(p1p,p2p)
+    }
+ 
+    def closestPoints(p1:Cmds, p2:Cmds) : Seq[(Int,Int)] = {
+        //println("p1=" + generatePoints(p1))
+        //println("p2=" + generatePoints(p2))
+        val points = generatePoints(p1).toSet.intersect(generatePoints(p2).toSet) 
+        points.toSeq.sortWith((p1,p2) => Math.abs(p1._1) + Math.abs(p1._2) < Math.abs(p2._1) + Math.abs(p2._2))
     }
 
-    class Grid(r:Rectangle) {
-        val ((minX,maxX),(minY,maxY)) = r
-        val v = Array.ofDim[Int](maxX-minX+1,maxY-minY+1)
-
-        def traceX(p1:(Int,Int), vx:Int) = {
-            if (vx >= 0) {
-                for (x <- p1._1 to p1._1 + vx) {
-                    v(x)(p1._2) = 1
-                }
-            } else { 
-                for (x <- p1._1 + vx to p1._1) {
-                    v(x)(p1._2) = 1
-                }
-            }
-            (p1._1 + vx, p1._2)
-        }
-
-        def traceY(p1:(Int,Int), vy:Int) = {
-            if (vy >=0 ) {
-                for (y <- p1._2 to p1._2 + vy) {
-                    v(p1._1)(y) = 1
-                }
-            } else {
-                for (y <- p1._2 + vy to p1._2) {
-                    v(p1._1)(y) = 1
-                }
-            }
-            (p1._1, p1._2 + vy)
-        }
-
-        def run(cmds:Cmds) = cmds.foldLeft((0,0))(interpret)
-
-        def interpret(p:(Int,Int), c:(Char,Int)) = 
-            c._1 match {
-                case 'R' => traceX(p,c._2)
-                case 'L' => traceX(p,-c._2)
-                case 'U' => traceY(p,c._2)
-                case 'D' => traceY(p,-c._2)
-            }
-        
-        def print() = for (y <- 0 to maxY- minY) {
-            val l = (0 to maxX-minX).map(v(_)(y))
-            println(l)     
-            }
-
-
+    def getSignalDelay(c1:Cmds, c2:Cmds) = {
+        val p1 = generatePoints(c1)
+        val p2 = generatePoints(c2)
+        val interSection = p1.toSet.intersect(p2.toSet)
+        interSection.map( p => (p1.indexOf(p) + p2.indexOf(p) + 2)).toSeq.sorted
     }
-
 }
