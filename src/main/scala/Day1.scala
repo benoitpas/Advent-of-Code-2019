@@ -1,6 +1,6 @@
 object Day1 {
     import scala.io.Source
-    // returns 400
+    // returns 400 -> need credentials
     //val url = "https://adventofcode.com/2019/day/1/input"
     //val masses = Source.fromURL(url)
     val masses = Source.fromResource("day1.txt").getLines.toList
