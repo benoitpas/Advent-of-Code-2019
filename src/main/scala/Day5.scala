@@ -1,21 +1,30 @@
 object Day5 {
     import scala.io.Source
     val program = Source.fromResource("day5.txt").getLines.next.split(",").map(Integer.parseInt(_).toInt).toList
+    val testInputOutput = List(3,0,4,0,99)
 
     def main(args: Array[String]): Unit = {
-        println(program)
+        val input = List(1)
+        val output = run(testInputOutput.toArray, input)
+        println("output="+output)
     }
 
     def run(p:Array[Int], input:List[Int]) = {
         var i = 0
-        var output = List[Int]()
-        while(p(i) != 99) {
-            p(i) match {
-                case 1 => p.update(p(i+3),p(p(i+1))+p(p(i+2))) ; i = i + 4
-                case 2 => p.update(p(i+3),p(p(i+1))*p(p(i+2))) ; i = i + 4
-                case _ => throw new Exception("Unknown opcode")
+        var inputIndex = 0
+        import scala.collection.mutable.ListBuffer
+        var output = ListBuffer[Int]()
+        while(p(i) % 100 != 99) {
+            val inc = p(i) match {
+                case 1 => p.update(p(i+3),p(p(i+1))+p(p(i+2))) ; 4
+                case 2 => p.update(p(i+3),p(p(i+1))*p(p(i+2))) ; 4
+                case 3 => p.update(p(i+1), input(inputIndex)) ; inputIndex = inputIndex + 1 ; 2
+                case 4 => output += p(p(i+1)) ; 2
+                case o => throw new Exception("Unknown opcode "+o+" position "+i)
             }
+            i = i + inc
         }
+        output
 
     }
 }
