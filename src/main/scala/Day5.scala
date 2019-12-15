@@ -1,6 +1,9 @@
 object Day5 {
     import scala.io.Source
-    val program = Source.fromResource("day5.txt").getLines.next.split(",").map(Integer.parseInt(_).toInt).toList
+    val input = Source.fromResource("day5.txt").getLines.next
+    def toProgram(s:String) = s.split(",").map(Integer.parseInt(_).toInt).toList
+    val program = toProgram(input)
+
     val testInputOutput = List(3,0,4,0,99)
     val testDirect = List(1101,3,4,0,4,0,99)
     val testMixed = List(101,0,4,0,4,0,99)
@@ -21,7 +24,9 @@ object Day5 {
     }
 
 
-    def run(p:Array[Int], input:List[Int]) = {
+    def run(p:Array[Int], input:List[Int], verbose:Boolean = false) = {
+
+        def vprint(s:String) = if (verbose) print(s)
 
         var i = 0
         var inputIndex = 0
@@ -29,7 +34,7 @@ object Day5 {
         var output = ListBuffer[Int]()
         while(p(i) % 100 != 99) {
             val opcode = p(i)
-            print(s"$i\t$opcode\t")
+            vprint(s"$i\t$opcode\t")
 
             def getParam(index:Int) = {
                 val mask = Map(1 -> 100, 2 -> 1000)
@@ -41,7 +46,7 @@ object Day5 {
 
             def unaryOp(f : (Int) => Unit) = {
                 val p1 = getParam(1)
-                print(s"${p(i+1)}\t($p1)")
+                vprint(s"${p(i+1)}\t($p1)")
                 f(p1)
                 2
             }
@@ -49,7 +54,7 @@ object Day5 {
             def binaryOp(f : (Int,Int) => Int) = {
                 val p1 = getParam(1)
                 val p2 = getParam(2)
-                print(s"${p(i+1)}\t${p(i+2)}\t${p(i+3)}\t($p1,$p2)")
+                vprint(s"${p(i+1)}\t${p(i+2)}\t${p(i+3)}\t($p1,$p2)")
                 p.update(p(i+3), f(p1, p2))
                 4
             }
@@ -58,7 +63,7 @@ object Day5 {
                 val p1 = getParam(1)
                 val p2 = getParam(2)
                 val jump = (p1 != 0 && c) || (p1 == 0 && !c)
-                print(s"${p(i+1)}\t${p(i+2)}\t($jump,$p2)")
+                vprint(s"${p(i+1)}\t${p(i+2)}\t($jump,$p2)")
                 if (jump)
                     p2 - i // jump to p1
                 else 
@@ -68,7 +73,7 @@ object Day5 {
             def compare(f:(Int,Int) => Boolean) = {
                 val p1 = getParam(1)
                 val p2 = getParam(2)
-                print(s"${p(i+1)}\t${p(i+2)}\t${p(i+3)}\t($p1,$p2)")
+                vprint(s"${p(i+1)}\t${p(i+2)}\t${p(i+3)}\t($p1,$p2)")
                 p.update(p(i+3), if (f(p1, p2)) 1 else 0)
                 4
             }
@@ -76,7 +81,7 @@ object Day5 {
             val inc = opcode % 100 match {
                 case 1 => binaryOp(_ + _)
                 case 2 => binaryOp(_ * _)
-                case 3 => print(input(inputIndex)) ; p.update(p(i+1), input(inputIndex)) ; inputIndex = inputIndex + 1 ; 2
+                case 3 => vprint(input(inputIndex).toString) ; p.update(p(i+1), input(inputIndex)) ; inputIndex = inputIndex + 1 ; 2
                 case 4 => unaryOp( output += _ )
                 case 5 => jumpIf(true)
                 case 6 => jumpIf(false)
@@ -85,7 +90,7 @@ object Day5 {
                 case o => throw new Exception("Unknown opcode "+o+" position "+i)
             }
             i = i + inc
-            println
+            if (verbose) println
         }
         output
 
