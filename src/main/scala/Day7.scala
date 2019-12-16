@@ -24,23 +24,39 @@ object Day7 {
     val pTest21 = List(3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5)
     val phases21 = List(9,8,7,6,5)
 
+    val pTest22 = List(3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,
+        -5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,
+        53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10)
+    val phases22 = List(9,7,8,5,6)
+
     def run2(program:List[Int],phases:List[Int]) = {
         val n = phases.length
         val amps = List.fill(n)(program.toArray)
 
         // Initialize the amps with the phase
         val iOutputs = (phases zip amps).map((p,a) => Day5.run(a,List(p),Some(0)))
-        println("iOutputs = $iOutputs")
-        // Then run them
         val iIndexes = iOutputs map (o => o._2)
-        val outputs1 = (iIndexes zip amps).foldLeft((0,List[Int]()))((acc,iAmp) => {
-            val o = Day5.run(iAmp._2,List(acc._1),Some(iAmp._1))
-            (o._1.head, acc._2 ++ List(o._2))
-        })
-        println(outputs1)
-        //println(Day5.run(amps(0), List(0), true))
-        //val o1 = amps.foldLeft(0)((i,amp) => Day5.run(amp,List(i),true).head)
-        //println(o1)
+        //println("iOutputs = $iOutputs")
+
+        def loop(signal:Int, indexes:List[Int]):Int = {
+            // Then run them
+            val outputs = (indexes zip amps).foldLeft((signal,List[Int]()))((acc,iAmp) => {
+                val o = Day5.run(iAmp._2,List(acc._1),Some(iAmp._1))
+                val s = o._1.headOption.getOrElse(signal)
+                //println(s"s=$s o=$o")
+                (s, acc._2 ++ List(o._2))
+            })
+            //println(outputs)
+            if (amps(0)(outputs._2.head) != 99) {
+                loop(outputs._1, outputs._2)
+            } else {
+                outputs._1
+            }
+
+
+        }
+
+        loop(0, iIndexes)
     }
 
     def main(args: Array[String]): Unit = {
@@ -56,7 +72,11 @@ object Day7 {
         val part1 = List(0,1,2,3,4).permutations.map(run1(program,_).head).toList.sorted.last
         println(s"part1 = $part1")
 
-        run2(pTest21, phases21)
+        //println(run2(pTest21, phases21))
+        //println(run2(pTest22, phases22))
+
+        val part2 = List(9,8,7,6,5).permutations.map(run2(program,_)).toList.sorted.last
+        println(s"part2 = $part2")
 
 
     }
