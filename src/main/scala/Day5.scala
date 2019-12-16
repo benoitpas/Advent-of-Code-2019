@@ -24,15 +24,16 @@ object Day5 {
     }
 
 
-    def run(p:Array[Int], input:List[Int], verbose:Boolean = false) = {
+    def run(p:Array[Int], input:List[Int], stream:Option[Int] = None, verbose:Boolean = false) = {
 
         def vprint(s:String) = if (verbose) print(s)
 
-        var i = 0
+        var i = stream.getOrElse(0)
         var inputIndex = 0
+        var stopInput = false
         import scala.collection.mutable.ListBuffer
         var output = ListBuffer[Int]()
-        while(p(i) % 100 != 99) {
+        while(p(i) % 100 != 99 && !(stream.isDefined && output.length>0) && !stopInput) {
             val opcode = p(i)
             vprint(s"$i\t$opcode\t")
 
@@ -43,6 +44,17 @@ object Day5 {
                 else
                     p(p(i+index))
             }
+
+            def readInput() = 
+                if (inputIndex<input.length) {
+                    vprint(input(inputIndex).toString)
+                    p.update(p(i+1), input(inputIndex))
+                    inputIndex = inputIndex + 1
+                    2
+                } else {
+                    stopInput = true
+                    0
+                }
 
             def unaryOp(f : (Int) => Unit) = {
                 val p1 = getParam(1)
@@ -81,7 +93,7 @@ object Day5 {
             val inc = opcode % 100 match {
                 case 1 => binaryOp(_ + _)
                 case 2 => binaryOp(_ * _)
-                case 3 => vprint(input(inputIndex).toString) ; p.update(p(i+1), input(inputIndex)) ; inputIndex = inputIndex + 1 ; 2
+                case 3 => readInput()
                 case 4 => unaryOp( output += _ )
                 case 5 => jumpIf(true)
                 case 6 => jumpIf(false)
@@ -92,7 +104,7 @@ object Day5 {
             i = i + inc
             if (verbose) println
         }
-        output
+        (output,i)
 
     }
 }
