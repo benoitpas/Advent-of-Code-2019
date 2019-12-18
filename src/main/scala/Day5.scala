@@ -39,10 +39,12 @@ object Day5 {
 
             def getParam(index:Int) = {
                 val mask = Map(1 -> 100, 2 -> 1000)
-                if ((opcode / mask(index)) % 10 > 0) 
-                    p(i+index) 
-                else
-                    p(p(i+index))
+                val mode = (opcode / mask(index)) % 10
+                mode match {
+                    case 0 => p(p(i + index))
+                    case 1 => p(i + index) 
+                    case 2 => p(p(i + index) + base)
+                }
             }
 
             def readInput() = 
@@ -99,6 +101,7 @@ object Day5 {
                 case 6 => jumpIf(false)
                 case 7 => compare(_ < _)
                 case 8 => compare(_ == _)
+                case 9 => unaryOp( base = _ )
                 case o => throw new Exception("Unknown opcode "+o+" position "+i)
             }
             i = i + inc
