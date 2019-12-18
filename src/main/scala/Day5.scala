@@ -101,7 +101,7 @@ object Day5 {
                 case 6 => jumpIf(false)
                 case 7 => compare(_ < _)
                 case 8 => compare(_ == _)
-                case 9 => unaryOp( base = _ )
+                case 9 => unaryOp( (v) => base = base + v )
                 case o => throw new Exception("Unknown opcode "+o+" position "+i)
             }
             i = i + inc
