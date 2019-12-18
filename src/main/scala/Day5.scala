@@ -24,11 +24,11 @@ object Day5 {
     }
 
 
-    def run(p:Array[Int], input:List[Int], stream:Option[Int] = None, verbose:Boolean = false) = {
+    def run(p:Array[Int], input:List[Int], stream:Option[(Int,Int)] = None, verbose:Boolean = false) = {
 
         def vprint(s:String) = if (verbose) print(s)
 
-        var i = stream.getOrElse(0)
+        var (i,base) = stream.getOrElse((0,0))
         var inputIndex = 0
         var stopInput = false
         import scala.collection.mutable.ListBuffer
@@ -104,7 +104,7 @@ object Day5 {
             i = i + inc
             if (verbose) println
         }
-        (output,i)
+        (output,(i,base))
 
     }
 }

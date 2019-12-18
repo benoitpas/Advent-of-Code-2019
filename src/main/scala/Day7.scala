@@ -34,20 +34,21 @@ object Day7 {
         val amps = List.fill(n)(program.toArray)
 
         // Initialize the amps with the phase
-        val iOutputs = (phases zip amps).map((p,a) => Day5.run(a,List(p),Some(0)))
-        val iIndexes = iOutputs map (o => o._2)
+        val iOutputs = (phases zip amps).map((p,a) => Day5.run(a,List(p),Some((0,0))))
+        val iIndexesBases = iOutputs map (o => o._2)
         //println("iOutputs = $iOutputs")
 
-        def loop(signal:Int, indexes:List[Int]):Int = {
+        // ib:Indexes and Bases
+        def loop(signal:Int, ib:List[(Int,Int)]):Int = {
             // Then run them
-            val outputs = (indexes zip amps).foldLeft((signal,List[Int]()))((acc,iAmp) => {
+            val outputs = (ib zip amps).foldLeft((signal,List[(Int,Int)]()))((acc,iAmp) => {
                 val o = Day5.run(iAmp._2,List(acc._1),Some(iAmp._1))
                 val s = o._1.headOption.getOrElse(signal)
                 //println(s"s=$s o=$o")
                 (s, acc._2 ++ List(o._2))
             })
             //println(outputs)
-            if (amps(0)(outputs._2.head) != 99) {
+            if (amps(0)(outputs._2.head._1) != 99) {
                 loop(outputs._1, outputs._2)
             } else {
                 outputs._1
@@ -56,7 +57,7 @@ object Day7 {
 
         }
 
-        loop(0, iIndexes)
+        loop(0, iIndexesBases)
     }
 
     def main(args: Array[String]): Unit = {
