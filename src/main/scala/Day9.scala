@@ -8,6 +8,12 @@ object Day9 {
     val testProgram2 = List[Long](1102,34915192,34915192,7,4,7,99,0)
     val testProgram3 = List[Long](104,1125899906842624L,99)
 
+    def run(program:List[Long], input:List[Long], s:Int = 2000) = {
+        val p = new Array[Long](s)
+        program.copyToArray(p)
+        Day5.run(p,input)
+    }
+
     def main(args: Array[String]): Unit = {
         val tp1 = new Array[Long](200)
         testProgram1.copyToArray(tp1)
@@ -18,9 +24,11 @@ object Day9 {
         val o3 = Day5.run(testProgram3.toArray,List())
         println(s"o3 = $o3")
 
-        val p1 = new Array[Long](2000)
-        program.copyToArray(p1)
-        val part1 = Day5.run(p1,List(1L))
+        val part1 = run(program,List(1L))
         println(s"part1 = $part1")
+
+        val part2 = run(program,List(2L))
+        println(s"part2 = $part2")
+
     }
 }
