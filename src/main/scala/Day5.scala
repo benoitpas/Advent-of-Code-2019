@@ -1,7 +1,7 @@
 object Day5 {
     import scala.io.Source
     val input = Source.fromResource("day5.txt").getLines.next
-    def toProgram(s:String) = s.split(",").map(Integer.parseInt(_).toInt).toList
+    def toProgram(s:String) = s.split(",").map(_.toLong).toList
     val program = toProgram(input)
 
     val testInputOutput = List(3,0,4,0,99)
@@ -18,39 +18,51 @@ object Day5 {
         999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99)
 
     def main(args: Array[String]): Unit = {
-        val input = List(5)
+        val input = List(5L)
         val output = run(program.toArray, input)
         println("output="+output)
     }
 
-
-    def run(p:Array[Int], input:List[Int], stream:Option[(Int,Int)] = None, verbose:Boolean = false) = {
+    import scala.collection.mutable.ListBuffer
+    def run(p:Array[Long], input:List[Long], stream:Option[(Int,Int)] = None, verbose:Boolean = false) : (ListBuffer[Long], (Int,Int)) = {
 
         def vprint(s:String) = if (verbose) print(s)
 
         var (i,base) = stream.getOrElse((0,0))
         var inputIndex = 0
         var stopInput = false
-        import scala.collection.mutable.ListBuffer
-        var output = ListBuffer[Int]()
+        var output = ListBuffer[Long]()
         while(p(i) % 100 != 99 && !(stream.isDefined && output.length>0) && !stopInput) {
             val opcode = p(i)
             vprint(s"$i\t$opcode\t")
 
+            def getMode(index:Int) = {
+                val mask = Map(1 -> 100, 2 -> 1000, 3 -> 10000)
+                (opcode / mask(index)) % 10
+            }
+
             def getParam(index:Int) = {
-                val mask = Map(1 -> 100, 2 -> 1000)
-                val mode = (opcode / mask(index)) % 10
-                mode match {
-                    case 0 => p(p(i + index))
+                getMode(index) match {
+                    case 0 => p(p(i + index).toInt)
                     case 1 => p(i + index) 
-                    case 2 => p(p(i + index) + base)
+                    case 2 => p(p(i + index).toInt + base)
                 }
+            }
+
+            def update(index:Int, v:Long) = {
+                val offset = 
+                    getMode(index) match {
+                        case 2 => base
+                        case 1 => throw new Exception(s"Immediate mode no supported for output (opcode $opcode position $i")
+                        case 0 => 0
+                    }
+                p.update(p(i+index).toInt + offset, v)
             }
 
             def readInput() = 
                 if (inputIndex<input.length) {
                     vprint(input(inputIndex).toString)
-                    p.update(p(i+1), input(inputIndex))
+                    update(1, input(inputIndex))
                     inputIndex = inputIndex + 1
                     2
                 } else {
@@ -58,24 +70,24 @@ object Day5 {
                     0
                 }
 
-            def unaryOp(f : (Int) => Unit) = {
+            def unaryOp(f : (Long) => Unit) = {
                 val p1 = getParam(1)
                 vprint(s"${p(i+1)}\t($p1)")
                 f(p1)
                 2
             }
 
-            def binaryOp(f : (Int,Int) => Int) = {
+            def binaryOp(f : (Long,Long) => Long) = {
                 val p1 = getParam(1)
                 val p2 = getParam(2)
                 vprint(s"${p(i+1)}\t${p(i+2)}\t${p(i+3)}\t($p1,$p2)")
-                p.update(p(i+3), f(p1, p2))
+                update(3, f(p1, p2))
                 4
             }
 
             def jumpIf(c:Boolean) = {
                 val p1 = getParam(1)
-                val p2 = getParam(2)
+                val p2 = getParam(2).toInt
                 val jump = (p1 != 0 && c) || (p1 == 0 && !c)
                 vprint(s"${p(i+1)}\t${p(i+2)}\t($jump,$p2)")
                 if (jump)
@@ -84,15 +96,15 @@ object Day5 {
                     3
             }
 
-            def compare(f:(Int,Int) => Boolean) = {
+            def compare(f:(Long,Long) => Boolean) = {
                 val p1 = getParam(1)
                 val p2 = getParam(2)
                 vprint(s"${p(i+1)}\t${p(i+2)}\t${p(i+3)}\t($p1,$p2)")
-                p.update(p(i+3), if (f(p1, p2)) 1 else 0)
+                update(3, if (f(p1, p2)) 1 else 0)
                 4
             }
 
-            val inc = opcode % 100 match {
+            val inc : Int = opcode % 100 match {
                 case 1 => binaryOp(_ + _)
                 case 2 => binaryOp(_ * _)
                 case 3 => readInput()
@@ -101,10 +113,10 @@ object Day5 {
                 case 6 => jumpIf(false)
                 case 7 => compare(_ < _)
                 case 8 => compare(_ == _)
-                case 9 => unaryOp( (v) => base = base + v )
+                case 9 => unaryOp( (v) => base = base + v.toInt )
                 case o => throw new Exception("Unknown opcode "+o+" position "+i)
             }
-            i = i + inc
+            i = i + inc.toInt
             if (verbose) println
         }
         (output,(i,base))

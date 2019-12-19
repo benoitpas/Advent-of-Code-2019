@@ -15,7 +15,7 @@ object Day7 {
     val pTest3 = List(3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0)
     val phases3 = List(1,0,4,3,2)
 
-    def run1(program:List[Int], phases:List[Int]) = phases.foldLeft(List(0))((input,phase) => {
+    def run1(program:List[Long], phases:List[Long]) = phases.foldLeft(List[Long](0))((input,phase) => {
         val o = Day5.run(program.toArray, phase::input)._1.toList
         //println(s"${phase::input} $o")
         o
@@ -29,7 +29,7 @@ object Day7 {
         53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10)
     val phases22 = List(9,7,8,5,6)
 
-    def run2(program:List[Int],phases:List[Int]) = {
+    def run2(program:List[Long],phases:List[Long]) = {
         val n = phases.length
         val amps = List.fill(n)(program.toArray)
 
@@ -39,7 +39,7 @@ object Day7 {
         //println("iOutputs = $iOutputs")
 
         // ib:Indexes and Bases
-        def loop(signal:Int, ib:List[(Int,Int)]):Int = {
+        def loop(signal:Long, ib:List[(Int,Int)]):Long = {
             // Then run them
             val outputs = (ib zip amps).foldLeft((signal,List[(Int,Int)]()))((acc,iAmp) => {
                 val o = Day5.run(iAmp._2,List(acc._1),Some(iAmp._1))
@@ -70,13 +70,13 @@ object Day7 {
         val output3 = run(pTest3, phases3)
         println(s"3 $output3")
         */
-        val part1 = List(0,1,2,3,4).permutations.map(run1(program,_).head).toList.sorted.last
+        val part1 = List[Long](0,1,2,3,4).permutations.map(run1(program,_).head).toList.sorted.last
         println(s"part1 = $part1")
 
         //println(run2(pTest21, phases21))
         //println(run2(pTest22, phases22))
 
-        val part2 = List(9,8,7,6,5).permutations.map(run2(program,_)).toList.sorted.last
+        val part2 = List[Long](9,8,7,6,5).permutations.map(run2(program,_)).toList.sorted.last
         println(s"part2 = $part2")
 
 
